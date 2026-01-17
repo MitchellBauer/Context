@@ -1,0 +1,24 @@
+{
+  "included_extensions": [
+    ".md", ".json", ".yaml", ".txt",  // Documentation
+    ".py",                            // Python
+    ".cs",                            // C#
+    ".go", ".toml", ".mod",           // Go
+    ".bat", ".ps1",                   // Scripts
+    ".js", ".ts", ".tsx", ".css"      // Web Development
+  ],
+  "ignore_dirs": [
+    ".git", ".idea", ".vscode",       // IDE & Git
+    "__pycache__", "venv", "env",     // Python Virtual Envs
+    "vendor", "fyne-cross",           // Go Build Artifacts
+    "bin", "build", "dist",           // Compiled Binaries
+    "node_modules", ".next"           // Node JS
+  ],
+  "ignore_files": [
+    "go.sum", 
+    "bundled.go", 
+    "resource.go", 
+    "package-lock.json",
+    "yarn.lock"
+  ]
+}
