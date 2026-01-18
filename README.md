@@ -27,7 +27,7 @@ Copy-pasting files one by one into an AI chat is tedious. `context` does it all 
 
 1. Clone this repository:
 ```bash
-git clone https://github.com/mitchelljbauer/context.git
+git clone https://github.com/mitchellbauer/context.git
 
 ```
 
