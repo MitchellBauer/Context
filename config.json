@@ -1,32 +1,46 @@
 {
   "token_limit": 1000000,              // Warn if estimated tokens exceed this
+  "max_log_lines": 500,                // Truncate logs larger than this
+  "max_file_bytes": 2097152,           // Skip individual files larger than this many bytes
   "included_extensions": [
-    ".md", ".json", ".yaml",           // Documentation
+    ".md", ".json", ".yaml", ".yml", // Documentation
     ".py",                             // Python
     ".cs",                             // C#
-    ".go", ".toml", ".mod",            // Go
-    ".bat", ".ps1",                    // Scripts
-    ".js", ".ts", ".tsx", ".css"       // Web Development
+    ".go", ".toml", ".mod",        // Go
+    ".bat", ".ps1",                  // Scripts
+    ".js", ".ts", ".tsx", ".css" // Web Development
   ],
   "log_extensions": [
     ".txt", ".log", ".out", ".err"     // Extensions to treat as logs
   ],
-  "max_log_lines": 500,                // Truncate logs larger than this
   "ignore_dirs": [
-    ".git", ".idea", ".vscode",        // IDE & Git
-    "__pycache__", "venv", "env",      // Python Virtual Envs
-    "vendor", "fyne-cross",            // Go Build Artifacts
-    "bin", "build", "dist",            // Compiled Binaries
-    "node_modules", ".next",           // Node JS
+    ".git", ".idea", ".vscode",          // IDE & Git
+    "__pycache__", "venv", "env",        // Python Virtual Envs
+    "vendor", "fyne-cross",                // Go Build Artifacts
+    "bin", "build", "dist",              // Compiled Binaries
+    "node_modules", ".next",               // Node JS
     "out",
-    ".obsidian", ".trash",             // Obsidian Config & Trash
-    ".stfolder", ".stversions"         // Syncthing
+    ".obsidian", ".trash",                 // Obsidian Config & Trash
+    ".stfolder", ".stversions",            // Syncthing
+    ".ssh", ".aws", ".azure",            // Local credentials and cloud config
+    ".kube", ".gnupg"
   ],
   "ignore_files": [
     "go.sum",
     "bundled.go",
     "resource.go",
     "package-lock.json",
-    "yarn.lock"
+    "yarn.lock",
+    ".env",
+    ".env.local",
+    ".env.development",
+    ".env.production",
+    ".env.test",
+    ".npmrc",
+    ".pypirc",
+    ".netrc",
+    "id_rsa",
+    "id_ed25519",
+    "authorized_keys"
   ]
 }

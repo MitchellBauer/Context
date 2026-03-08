@@ -5,7 +5,7 @@ chcp 65001 >nul
 echo Building Context tool...
 
 :: 1. Build directly into the tools folder
-go build -o C:\tools\context.exe context.go
+go build -o C:\tools\context.exe .
 
 if %errorlevel% neq 0 (
     echo ❌ Build FAILED. See errors above.

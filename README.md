@@ -1,162 +1,158 @@
 # Context
 
-A lightweight CLI tool written in Go designed to streamline the workflow of using Large Language Models (LLMs) like Gemini, ChatGPT, or Claude with your codebase.
+A lightweight Go CLI that aggregates local project files into an XML-like bundle with readable file bodies and copies the result directly to your clipboard for use with LLMs.
 
-It recursively scans your current directory, filters for relevant file types (code, docs, config), ignores junk folders (git, bin, vendor), and copies a structured XML representation of your project directly to your clipboard.
+`context` is designed to stay local during normal use. It scans the current working directory, applies extension and ignore filters, builds a project tree plus per-file wrappers, and copies the output to the system clipboard.
 
-## 🚀 Why?
+## Why
 
-Copy-pasting files one by one into an AI chat is tedious. `context` does it all in one command, formatting the output so the AI understands both your **file structure** and **file contents**.
+Copy-pasting files one at a time into an AI chat is tedious. `context` collects the files you actually want, preserves the directory map, and formats the result so an LLM can separate structure from content without turning Markdown bodies into hard-to-read XML entities.
 
-## ✨ Features
+## Features
 
-* **Blazing Fast:** Built with Go for instant execution.
-* **Smart Filtering:** Customizable filtering for file extensions and ignored directories.
-* **LLM-Ready Format:** Wraps content in XML tags (`<file name="...">`) which helps models distinguish between instruction and code.
-* **Visual Map:** Generates a tree view of your project structure at the top of the output.
-* **Clipboard Integration:** Output goes straight to your clipboard—just run and paste (Ctrl+V).
-* **Cross-Platform:** Works on Windows, macOS, and Linux.
+- Fast single-binary workflow written in Go.
+- Clipboard-first output for quick paste into ChatGPT, Claude, Gemini, or similar tools.
+- Configurable include, ignore, log truncation, and file-size limits.
+- Offline-first normal runtime with no network access in the main executable.
+- Cross-platform clipboard support for Windows, macOS, and Linux.
 
-## 🛠️ Installation
+## Installation
 
-### 1. Prerequisites
+### Prerequisites
 
-* [Go](https://go.dev/dl/) installed on your machine.
+- [Go](https://go.dev/dl/) installed locally.
 
-### 2. Build from Source
+### Build from source
 
-1. Clone this repository:
 ```bash
 git clone https://github.com/mitchellbauer/context.git
-
-```
-
-
-2. Build the executable:
-```bash
 cd context
-go build -o context.exe context.go
-
+go build -o context.exe .
 ```
 
+Place `context.exe` in `C:\Tools` or another folder on your `PATH`.
 
-3. Create a folder named `Tools` directly on your C: drive (`C:\Tools`).
-4. Move the generated `context.exe` into `C:\Tools`.
-5. **(Optional)** Create a `config.json` file in `C:\Tools` to customize behavior (see Configuration below).
+## Usage
 
-### 3. Setting up the System Path (Windows 11)
-
-To run `context` from any terminal window without typing the full path, you must add `C:\Tools` to your System Variables.
-
-1. Press the **Windows Key**, type **"env"**, and select **Edit the system environment variables**.
-2. In the window that appears, click the **Environment Variables** button (bottom right).
-3. In the bottom section labeled **System variables**, scroll down and select the variable named **Path**.
-4. Click the **Edit...** button.
-5. Click **New** on the right side and type exactly: `C:\Tools`
-6. Click **OK** on all three open windows to save the changes.
-7. **Restart your terminal** (PowerShell or CMD) for the changes to take effect.
-
-## 💻 Usage
-
-Navigate to any project folder in your terminal and run:
+Run `context` from the project folder you want to scan.
 
 ```bash
 context
-
 ```
 
-You will see:
+You will see output like:
 
 ```text
 Scanning project files...
-✅ Success! Context copied to clipboard.
-Ready to paste into Gemini! (Ctrl+V)
-
+Success! Context copied to clipboard. (Ctrl+V)
 ```
 
-### Advanced Modes
+### Preview mode
 
-**🔎 Preview Mode**
-Use this to check which files will be included without copying anything to the clipboard. Useful for verifying your `.gitignore` or `config.json` rules.
+Preview which files would be included without touching the clipboard.
 
 ```bash
 context -p
-# OR
 context --preview
-
 ```
 
-**🌳 Structure Mode**
-Use this to copy **only** the file and folder hierarchy to your clipboard (no file contents). This gives the AI a "map" of your directory without the heavy text.
+### Structure mode
 
-* **Codebase Architecture:** Ask high-level questions about how to structure your project.
-* **Folder Organization:** Perfect for asking advice on reorganizing personal files, such as cleaning up an **Obsidian Vault** or sorting a document library.
+Copy only the directory tree to the clipboard.
 
 ```bash
 context -s
-# OR
 context --structure
-
 ```
 
-## ⚙️ Configuration
+## Output format
 
-You can customize behavior by editing the `config.json` file located in your installation directory (e.g., `C:\Tools\config.json`).
+Normal full-context output keeps XML-like wrappers such as `<project_structure>` and `<file name="...">`, but file bodies are emitted as readable literal text inside CDATA-style sections. This keeps boundaries clear for LLMs without converting every newline, tab, quote, or ampersand into XML entities.
 
-### Adjusting Limits
+## Security Notes
 
-* **Log File Limit:** Large log files can eat up context windows.
-* **How to change:** Update `"max_log_lines"` in `config.json`.
-* **Behavior:** Files matching extensions in `"log_extensions"` will be truncated to this number of lines.
+Normal `context` usage is offline-first:
 
+- The main `context` executable does not perform network I/O during normal scanning or clipboard copy.
+- It reads files from the current working directory only.
+- On Windows, it writes Unicode text to the native clipboard API directly, preserving emojis and other non-ASCII characters without a shell-based clipboard hop.
+- It skips symlinks, ignores a set of sensitive local directories and files by default, truncates configured log types, and skips oversized or non-UTF-8/binary-like content.
 
-* **Token Limit:** The tool estimates tokens to help you avoid context overflow.
-* **How to change:** Update `"token_limit"` in `config.json`.
-* **Behavior:** This is a *soft limit*. The tool will print a warning ⚠️ if the estimated tokens exceed this number, but it will still copy the content to your clipboard.
+Things to keep in mind:
 
+- Clipboard contents are intentionally exposed to your local clipboard manager and any local apps that can read your clipboard.
+- Optional maintenance scripts such as [`Update.bat`](./Update.bat) are not part of the trusted offline runtime path; that script reaches out to GitHub by running `git pull`.
+- Linux clipboard issues are known to need a follow-up pass and are not part of this Windows-focused security hardening.
 
+## Configuration
 
-### Configuration Reference
+`context` reads `config.json` from the executable directory. The file supports JSONC-style comments.
 
-The tool supports **JSONC** (JSON with Comments).
+### Important settings
 
-**Example `config.json`:**
+- `token_limit`: soft warning threshold for estimated tokens.
+- `max_log_lines`: truncates files whose extension is listed in `log_extensions`.
+- `max_file_bytes`: skips individual files larger than this size.
+- `included_extensions`: only these extensions are scanned.
+- `ignore_dirs`: directories skipped during the recursive walk.
+- `ignore_files`: exact filenames skipped even if their extension is included.
+
+### Example config
 
 ```jsonc
 {
-  "token_limit": 1000000,              // Warn if estimated tokens exceed this
-  "max_log_lines": 500,                // Truncate logs larger than this
-  
+  "token_limit": 1000000,
+  "max_log_lines": 500,
+  "max_file_bytes": 2097152,
   "included_extensions": [
-    ".md", ".json", ".yaml", ".txt",   // Documentation
-    ".py",                             // Python
-    ".cs",                             // C#
-    ".go", ".toml", ".mod",            // Go
-    ".bat", ".ps1",                    // Scripts
-    ".js", ".ts", ".tsx", ".css"       // Web Development
+    ".md", ".json", ".yaml", ".yml",
+    ".py",
+    ".cs",
+    ".go", ".toml", ".mod",
+    ".bat", ".ps1",
+    ".js", ".ts", ".tsx", ".css"
   ],
   "log_extensions": [
-    ".txt", ".log", ".out", ".err"     // Extensions to treat as logs
+    ".txt", ".log", ".out", ".err"
   ],
   "ignore_dirs": [
-    ".git", ".idea", ".vscode",        // IDE & Git
-    "__pycache__", "venv", "env",      // Python Virtual Envs
-    "vendor", "fyne-cross",            // Go Build Artifacts
-    "bin", "build", "dist",            // Compiled Binaries
-    "node_modules", ".next"            // Node JS
+    ".git", ".idea", ".vscode",
+    "__pycache__", "venv", "env",
+    "vendor", "fyne-cross",
+    "bin", "build", "dist",
+    "node_modules", ".next",
+    "out",
+    ".obsidian", ".trash",
+    ".stfolder", ".stversions",
+    ".ssh", ".aws", ".azure",
+    ".kube", ".gnupg"
   ],
   "ignore_files": [
     "go.sum",
     "bundled.go",
+    "resource.go",
     "package-lock.json",
-    "yarn.lock"
+    "yarn.lock",
+    ".env",
+    ".env.local",
+    ".env.development",
+    ".env.production",
+    ".env.test",
+    ".npmrc",
+    ".pypirc",
+    ".netrc",
+    "id_rsa",
+    "id_ed25519",
+    "authorized_keys"
   ]
 }
-
 ```
 
-*Note: If `config.json` is missing, the tool will default to a standard set of extensions and ignore rules.*
+## Maintenance scripts
 
-## 📄 License
+- [`BuildToToolsDir.bat`](./BuildToToolsDir.bat) builds the executable into `C:\tools` and copies `config.json`.
+- [`Update.bat`](./Update.bat) is an explicit maintenance helper that runs `git pull` before rebuilding. Use it only when you want to refresh from the remote repository.
+
+## License
 
 MIT
