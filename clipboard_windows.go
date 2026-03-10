@@ -19,9 +19,11 @@ var (
 	user32               = syscall.NewLazyDLL("user32.dll")
 	kernel32             = syscall.NewLazyDLL("kernel32.dll")
 	procOpenClipboard    = user32.NewProc("OpenClipboard")
+	procGetForegroundWnd = user32.NewProc("GetForegroundWindow")
 	procCloseClipboard   = user32.NewProc("CloseClipboard")
 	procEmptyClipboard   = user32.NewProc("EmptyClipboard")
 	procSetClipboardData = user32.NewProc("SetClipboardData")
+	procGetConsoleWindow = kernel32.NewProc("GetConsoleWindow")
 	procGlobalAlloc      = kernel32.NewProc("GlobalAlloc")
 	procGlobalFree       = kernel32.NewProc("GlobalFree")
 	procGlobalLock       = kernel32.NewProc("GlobalLock")
@@ -84,9 +86,14 @@ func utf16BufferFromString(text string) ([]uint16, error) {
 }
 
 func openClipboardWithRetry() error {
+	owner, err := clipboardOwnerHandle()
+	if err != nil {
+		return err
+	}
+
 	var lastErr error
 	for range 10 {
-		if r, _, err := procOpenClipboard.Call(0); r != 0 {
+		if r, _, err := procOpenClipboard.Call(owner); r != 0 {
 			return nil
 		} else if err != syscall.Errno(0) {
 			lastErr = err
@@ -97,4 +104,14 @@ func openClipboardWithRetry() error {
 		lastErr = os.ErrPermission
 	}
 	return fmt.Errorf("open clipboard failed: %w", lastErr)
+}
+
+func clipboardOwnerHandle() (uintptr, error) {
+	if hwnd, _, _ := procGetConsoleWindow.Call(); hwnd != 0 {
+		return hwnd, nil
+	}
+	if hwnd, _, _ := procGetForegroundWnd.Call(); hwnd != 0 {
+		return hwnd, nil
+	}
+	return 0, fmt.Errorf("no suitable clipboard owner window handle available")
 }

@@ -20,7 +20,7 @@ Copy-pasting files one at a time into an AI chat is tedious. `context` collects 
 
 ### Prerequisites
 
-- [Go](https://go.dev/dl/) installed locally.
+- [Go 1.26.1](https://go.dev/dl/) installed locally.
 
 ### Build from source
 
@@ -31,6 +31,7 @@ go build -o context.exe .
 ```
 
 Place `context.exe` in `C:\Tools` or another folder on your `PATH`.
+Keep `config.json` in the same directory as the executable so runtime configuration is loaded correctly.
 
 ## Usage
 
@@ -86,7 +87,7 @@ Things to keep in mind:
 
 ## Configuration
 
-`context` reads `config.json` from the executable directory. The file supports JSONC-style comments.
+`context` reads `config.json` from the executable directory. The file supports JSONC-style comments, so comments are allowed inside the config file.
 
 ### Important settings
 
